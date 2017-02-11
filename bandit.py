@@ -2,8 +2,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 num_actions = 10
-epsilons = np.array([0., 0.2, 0.5])
-num_iter = 1000
+epsilons = np.array([0., 0.1, 0.01])
+num_iter = 10000
 
 q_star_a = np.random.normal(size=[num_actions])
 R_t_a = np.zeros([num_iter, num_actions, len(epsilons)])
@@ -18,11 +18,11 @@ for t in range(1, num_iter):
     actions = np.where(is_greedy, greedy_actions, random_actions)
 
     # Value Update
-    noise_term = np.random.normal(scale=0.1)
-    K_a[a] += 1
+    noise_term = np.random.normal(scale=1., size=len(epsilons))
+    K_a[actions, np.arange(len(epsilons))] += 1
     Q_t_a[t] = Q_t_a[t - 1]
-    R_t_a[t, a] = q_star_a[a] + noise_term
-    Q_t_a[t, a] = np.sum(R_t_a[:, a]) / K_a[a]
+    R_t_a[t, actions, np.arange(len(epsilons))] = q_star_a[actions] + noise_term
+    Q_t_a[t, K_a > 0] = np.sum(R_t_a, axis=0)[K_a > 0] / K_a[K_a > 0]
 
 print("Q values", Q_t_a[-1])
 print("Q star", q_star_a)
