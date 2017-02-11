@@ -10,6 +10,9 @@ R_t_a = np.zeros([num_iter, num_actions, len(epsilons)])
 Q_t_a = np.zeros([num_iter, num_actions, len(epsilons)])
 K_a = np.zeros([num_actions, len(epsilons)], dtype=np.int32)
 
+# The first action is always assumed to be the action at index 0
+# Absent prior knowledge, this is equivalent to a random choice
+
 for t in range(1, num_iter):
     # Action Selection
     is_greedy = np.random.random() < (1 - epsilons)
