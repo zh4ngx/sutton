@@ -2,25 +2,20 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 num_actions = 10
-epsilon = 0.
+epsilons = np.array([0., 0.2, 0.5])
 num_iter = 1000
 
 q_star_a = np.random.normal(size=[num_actions])
-R_t_a = np.zeros([num_iter, num_actions])
-Q_t_a = np.zeros([num_iter, num_actions])
-K_a = np.zeros(num_actions, dtype=np.int32)
-
-# First action selected at random
-a = np.random.randint(num_actions)
-Q_t_a[0, a] = q_star_a[a]
+R_t_a = np.zeros([num_iter, num_actions, len(epsilons)])
+Q_t_a = np.zeros([num_iter, num_actions, len(epsilons)])
+K_a = np.zeros([num_actions, len(epsilons)], dtype=np.int32)
 
 for t in range(1, num_iter):
     # Action Selection
-    is_greedy = np.random.random() < (1 - epsilon)
-    if is_greedy:
-        a = np.argmax(Q_t_a[t - 1])
-    else:
-        a = np.random.randint(num_actions)
+    is_greedy = np.random.random() < (1 - epsilons)
+    greedy_actions = np.argmax(Q_t_a[t - 1], axis=0)
+    random_actions = np.random.randint(num_actions, size=len(epsilons))
+    actions = np.where(is_greedy, greedy_actions, random_actions)
 
     # Value Update
     noise_term = np.random.normal(scale=0.1)
