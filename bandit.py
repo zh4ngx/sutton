@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 np.random.seed(19680801)
 num_actions = 10
 num_trials = 2000
-num_iter = 10000
+num_iter = 2000
 epsilon_values = [0., 0.1, 0.01]
 epsilons = np.array(epsilon_values * num_trials)
 

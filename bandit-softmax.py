@@ -5,8 +5,8 @@ import matplotlib.pyplot as plt
 np.random.seed(19680801)
 num_actions = 10
 num_trials = 2000
-num_iter = 1000
-tau_values = [100, 10., 1., 0.1]
+num_iter = 2000
+tau_values = [np.exp(0), np.exp(-2), np.exp(-4)]
 taus = np.array(tau_values * num_trials)
 
 q_star_a = np.repeat(np.random.normal(size=[num_actions, num_trials]), len(tau_values), axis=1)
@@ -37,12 +37,17 @@ for t in range(1, num_iter):
 
 
 R_t = np.mean(np.sum(R_t_a, axis=1).reshape([num_iter, num_trials, -1]), axis=1)
+A_t = np.mean(optimal_actions.reshape([num_iter, num_trials, -1]), axis=1)
 plt.subplot(211)
-plt.plot(R_t)
+plt.plot(R_t[:, 0], 'r')
+plt.plot(R_t[:, 1], 'g')
+plt.plot(R_t[:, 2], 'b')
 plt.xlabel('Steps')
 plt.ylabel('Average reward')
 plt.subplot(212)
-plt.plot(np.mean(optimal_actions.reshape([num_iter, num_trials, -1]), axis=1))
+plt.plot(A_t[:, 0], 'r')
+plt.plot(A_t[:, 1], 'g')
+plt.plot(A_t[:, 2], 'b')
 plt.xlabel('Steps')
 plt.ylabel('Optimal action')
 plt.show()
