@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 np.random.seed(19680801)
 num_actions = 10
 num_trials = 2000
-num_iter = 2000
+num_iter = 10000
 tau_values = [np.exp(0), np.exp(-2), np.exp(-4)]
 taus = np.array(tau_values * num_trials)
 
@@ -13,7 +13,7 @@ q_star_a = np.repeat(np.random.normal(size=[num_actions, num_trials]), len(tau_v
 optimal_action = np.argmax(q_star_a, axis=0)
 optimal_actions = np.zeros([num_iter, len(taus)], dtype=np.int32)
 R_t_a = np.zeros([num_iter, num_actions, len(taus)])
-Q_t_a = np.zeros([num_iter, num_actions, len(taus)])
+Q_a = np.zeros([num_actions, len(taus)])
 K_a = np.zeros([num_actions, len(taus)], dtype=np.int32)
 
 # The first action is always assumed to be the action at index 0
@@ -21,20 +21,25 @@ K_a = np.zeros([num_actions, len(taus)], dtype=np.int32)
 
 for t in range(1, num_iter):
     # Action Selection
-    energy = np.exp(Q_t_a[t - 1] / taus)
+    energy = np.exp(Q_a / taus)
     sum_energy = np.sum(energy, axis=0, keepdims=True)
     softmax = energy / sum_energy
     cdf = np.cumsum(softmax, axis=0)
     actions = np.argmin(np.random.random_sample(len(taus)) > cdf, axis=0)
+    action_idx = actions, np.arange(len(taus))
     optimal_actions[t, actions == optimal_action] += 1
 
-    # Value Update
+    # Sample Environment
     noise_term = np.random.normal(scale=1., size=len(taus))
-    K_a[actions, np.arange(len(taus))] += 1
-    Q_t_a[t] = Q_t_a[t - 1]
-    R_t_a[t, actions, np.arange(len(taus))] = q_star_a[actions, np.arange(len(taus))] + noise_term
-    Q_t_a[t, K_a > 0] = np.sum(R_t_a, axis=0)[K_a > 0] / K_a[K_a > 0]
+    R_t_a[t][action_idx] = q_star_a[action_idx] + noise_term
 
+    # Update Estimate
+    K_a[action_idx] += 1
+    step_size = 1 / K_a[action_idx]
+    target = R_t_a[t][action_idx]
+    old_estimate = Q_a[action_idx]
+
+    Q_a[action_idx] = old_estimate + step_size * (target - old_estimate)
 
 R_t = np.mean(np.sum(R_t_a, axis=1).reshape([num_iter, num_trials, -1]), axis=1)
 A_t = np.mean(optimal_actions.reshape([num_iter, num_trials, -1]), axis=1)
