@@ -7,6 +7,7 @@ num_actions = 10
 num_trials = 2000
 num_iter = 1000
 epsilon_values = [1e-1, 0]
+c = 1
 epsilons = np.array(epsilon_values * num_trials)
 num_samples = len(epsilons)
 
@@ -14,8 +15,7 @@ q_star_a = np.repeat(np.random.normal(size=[num_actions, num_trials]), len(epsil
 optimal_action = np.argmax(q_star_a, axis=0)
 optimal_actions = np.zeros([num_iter, num_samples], dtype=np.int32)
 R_t_a = np.zeros([num_iter, num_actions, num_samples])
-Q_a = np.full([num_actions, num_samples], 5.)
-Q_a[:, ::2] = 0.
+Q_a = np.full([num_actions, num_samples], 0.)
 K_a = np.zeros([num_actions, num_samples], dtype=np.int32)
 
 # The first action is always assumed to be the action at index 0
@@ -24,9 +24,17 @@ K_a = np.zeros([num_actions, num_samples], dtype=np.int32)
 for t in range(1, num_iter):
     # Select Action
     is_greedy = np.random.random(num_samples) < (1 - epsilons)
+
+    # Compute Epsilon Greedy
     greedy_actions = np.argmax(Q_a, axis=0)
     random_actions = np.random.randint(num_actions, size=num_samples)
     actions = np.where(is_greedy, greedy_actions, random_actions)
+
+    # Compute UCB Actions
+    ucb_actions = np.argmax(Q_a + c * np.sqrt(np.log(t) / (K_a + 1e-6)), axis=0)
+
+    # Overwrite every other action with UCB Action
+    actions[::2] = ucb_actions[::2]
     action_idx = actions, np.arange(num_samples)
     optimal_actions[t, actions == optimal_action] += 1
 
@@ -46,8 +54,8 @@ for t in range(1, num_iter):
 
 R_t = np.mean(np.sum(R_t_a, axis=1).reshape([num_iter, num_trials, -1]), axis=1)
 plt.subplot(211)
-plt.plot(R_t[:, 0], label='realistic, e = 0.1')
-plt.plot(R_t[:, 1], label='optimistic, e = 0')
+plt.plot(R_t[:, 0], label='UCB c = 2')
+plt.plot(R_t[:, 1], label='Epsilon Greedy e = 0.1')
 plt.xlabel('Steps')
 plt.ylabel('Average reward')
 plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3,
