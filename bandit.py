@@ -34,12 +34,6 @@ for t in range(1, num_iter):
     R_t_a[t, actions, np.arange(len(epsilons))] = q_star_a[actions, np.arange(len(epsilons))] + noise_term
     Q_t_a[t, K_a > 0] = np.sum(R_t_a, axis=0)[K_a > 0] / K_a[K_a > 0]
 
-    if t % 1000 == 0:
-        print("T", t)
-        print("Estimated Q")
-        print(Q_t_a[t, :, :len(epsilon_values)])
-        print("Q Star")
-        print(q_star_a[:, :len(epsilon_values)])
 
 R_t = np.mean(np.sum(R_t_a, axis=1).reshape([num_iter, num_trials, -1]), axis=1)
 plt.subplot(211)
