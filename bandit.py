@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 np.random.seed(19680801)
 num_actions = 10
 num_trials = 2000
-num_iter = 1000
+num_iter = 10000
 epsilon_values = [0., 0.1, 0.01]
 epsilons = np.array(epsilon_values * num_trials)
 
@@ -21,7 +21,7 @@ K_a = np.zeros([num_actions, len(epsilons)], dtype=np.int32)
 
 for t in range(1, num_iter):
     # Action Selection
-    is_greedy = np.random.random() < (1 - epsilons)
+    is_greedy = np.random.random(len(epsilons)) < (1 - epsilons)
     greedy_actions = np.argmax(Q_t_a[t - 1], axis=0)
     random_actions = np.random.randint(num_actions, size=len(epsilons))
     actions = np.where(is_greedy, greedy_actions, random_actions)
@@ -34,7 +34,7 @@ for t in range(1, num_iter):
     R_t_a[t, actions, np.arange(len(epsilons))] = q_star_a[actions, np.arange(len(epsilons))] + noise_term
     Q_t_a[t, K_a > 0] = np.sum(R_t_a, axis=0)[K_a > 0] / K_a[K_a > 0]
 
-    if t % 100 == 0:
+    if t % 1000 == 0:
         print("T", t)
         print("Estimated Q")
         print(Q_t_a[t, :, :len(epsilon_values)])
